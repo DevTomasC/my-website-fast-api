@@ -1,106 +1,103 @@
-# my-website-fast-api
-Esse Website é um exemplo lúdico de compreensão e estudo do Framework FastAPI!
-     Também serve pra template 
-    por: DevTomasC 
+# 🍽️ My Website - FastAPI
 
-# Wellcome!  :D
+Esse projeto é um **exemplo lúdico de compreensão e estudo do Framework FastAPI**, e também pode ser usado como template para novos projetos.  
+Desenvolvido por: [DevTomasC](https://github.com/DevTomasC)
 
-# Funcionamento do Web em uma aplicação modelo cardápio digital
-Fluxo Lúdico com modelo "fazer pedido" explicado com foco técnico e arquitetural:
+---
 
-   # Client (frontend ou app móvel)
+## 👋 Wellcome! :D
 
-        Gera requisição HTTP POST para endpoint /pedido contendo um payload JSON com os dados do pedido (ex: itens, quantidade, observações) e o token JWT no header Authorization: Bearer <token>.
+---
 
-   # Uvicorn (ASGI server)
+## ⚙️ Funcionamento geral — Modelo de aplicação: *Cardápio Digital*
 
-        Recebe a requisição HTTP assíncrona, faz o parsing do cabeçalho e corpo, encaminha para o FastAPI app conforme roteamento.
+### 🔁 Fluxo de um pedido (com explicação técnica e arquitetural)
 
-   # FastAPI (framework web)
+#### 🧑‍💻 1. **Client (Frontend ou App móvel)**
 
-        Pega a requisição e extrai o JSON body e o token JWT.
+> Envia requisição HTTP POST para o endpoint `/pedido` com:
+- Payload JSON com dados do pedido (itens, quantidade, observações).
+- Header `Authorization: Bearer <token>` contendo o JWT.
 
-        Define tipagens (models) Pydantic para validação e parsing automático dos dados recebidos.
+#### 🌀 2. **Uvicorn (ASGI Server)**
 
-        Recebe o objeto Pydantic validado, já garantido que os dados estão coerentes (ex: quantidade é int > 0, itens existem no cardápio).
+> Recebe requisição assíncrona, faz parsing e roteia para a aplicação FastAPI.
 
-   # Pydantic
+#### ⚡ 3. **FastAPI (Framework Web)**
 
-        Valida e converte o JSON para objetos Python fortemente tipados.
+> - Recebe JSON e JWT do header.
+- Utiliza Pydantic para validação automática dos dados.
+- Garante que os dados recebidos sejam coerentes (ex: quantidade > 0).
 
-        Rejeita requisições malformadas ou com campos inválidos, retornando erro HTTP 422.
+#### 🧱 4. **Pydantic (Validação de dados)**
 
-   # PyJWT
+> - Converte JSON para objetos Python fortemente tipados.
+- Rejeita requisições inválidas (erro HTTP 422).
 
-        Decodifica o token JWT usando a chave secreta do backend.
+#### 🔐 5. **PyJWT (Autenticação)**
 
-        Verifica assinatura, expiração, permissões (claims).
+> - Decodifica e valida o token JWT (assinatura, expiração, claims).
+- Confirma que o usuário está autenticado e autorizado.
 
-        Confirma que o usuário está autenticado e autorizado a fazer pedidos.
+#### 🧠 6. **Business Logic (Camada de serviço)**
 
-   # Business Logic (controller/service layer)
+> - Valida o estoque via SQLAlchemy.
+- Calcula valor total.
+- Aplica regras (ex: estoque insuficiente retorna HTTP 400 ou 409).
+- Prepara instâncias ORM para inserir no banco.
 
-        Recebe o objeto do pedido validado e o usuário autenticado.
+#### 🛢️ 7. **SQLAlchemy (ORM)**
 
-        Consulta estoque atual via SQLAlchemy para cada item do pedido.
+> - Executa INSERT do pedido.
+- Atualiza estoque.
+- Usa transações (rollback em caso de erro).
 
-        Calcula valor total com base nos preços atuais (banco ou cache).
+#### 📐 8. **Alembic (Migrações)**
 
-        Verifica se estoque é suficiente; caso contrário, retorna erro HTTP 400 ou 409.
+> - Garante estrutura de banco sincronizada com o código.
+- Aplica migrações automaticamente.
 
-        Cria instâncias ORM para o pedido e seus itens, preparando para inserir no banco.
+#### 🔒 9. **Passlib**
 
-   # SQLAlchemy (ORM)
+> Usado apenas para hashing e verificação de senhas na autenticação (login/registro).
 
-        Executa comandos SQL para inserir o pedido na tabela pedidos.
+#### 🧪 10. **pytest (Testes)**
 
-        Atualiza o estoque dos itens na tabela produtos decrementando as quantidades.
+> Testa:
+- Validação Pydantic
+- Token JWT
+- Regras de negócio (estoque, pedidos)
+- Endpoints (via `TestClient`)
+- Rollback e transações
 
-        Usa transação para garantir atomicidade: se alguma operação falha, rollback.
+---
 
-   # Alembic (migrações)
+## 🧱 Arquitetura técnica (MVC simplificado)
 
-        Garante que a estrutura do banco (tabelas, colunas) está atualizada para suportar o esquema do pedido.
+- **Model**: Pydantic + SQLAlchemy  
+- **View**: JSON API via FastAPI  
+- **Controller**: routers + business logic
 
-        Executa migrações automáticas antes da aplicação iniciar, para evitar inconsistências.
+---
 
-   # Passlib
+## 🔁 Resumo técnico dos componentes
 
-        Não entra no fluxo do pedido, só usado em login para comparar hash de senha.
+| Componente     | Função principal                                   |
+|----------------|----------------------------------------------------|
+| **Uvicorn**    | Servidor ASGI que roda o app FastAPI               |
+| **FastAPI**    | Framework principal (validação, rotas, responses)  |
+| **Pydantic**   | Tipagem e validação automática                     |
+| **JWT (PyJWT)**| Autenticação stateless via token                   |
+| **SQLAlchemy** | ORM e transações com banco                         |
+| **Alembic**    | Migrações automáticas do banco                     |
+| **Passlib**    | Segurança das senhas (hash)                        |
+| **pytest**     | Testes unitários e de integração                   |
 
-   # pytest (testes automatizados)
+---
 
-        Roda testes unitários e de integração:
+## 📈 Diagrama UML ASCII (resumo da comunicação dos componentes)
 
-            Validação Pydantic.
-
-            Decodificação de token JWT.
-
-            Regras da business logic (ex: falha estoque insuficiente).
-
-            Testa endpoints FastAPI simulando requisições.
-
-            Testa rollback do banco em caso de falhas.
-
-   # Resumo técnico da arquitetura [MVC]:
-
-    Uvicorn atua como ASGI server que suporta async nativamente, alta performance.
-
-    FastAPI usa tipagem estática via Pydantic para validar e converter entrada.
-
-    JWT token é verificado para autenticação stateless, não mantém sessão.
-
-    SQLAlchemy gerencia ORM e abstrai SQL, facilitando transações e consultas.
-
-    Alembic mantém versão do banco sincronizada com código.
-
-    Testes garantem confiabilidade e qualidade antes de deploy.
-
-    Passlib só na camada de autenticação para segurança das senhas.
-
-
-
-# Ascii UML
+```text
 +-------------------+
 |    Client         |
 | (Browser, App)    |
@@ -135,8 +132,6 @@ Fluxo Lúdico com modelo "fazer pedido" explicado com foco técnico e arquitetur
 | Controllers       |        | (Migrações do DB) |               |
 +---------+---------+        +-------------------+               |
           |                                                      |
-          |                                                      |
-          |                                                      |
           v                                                      |
 +-------------------+                                            |
 | Passlib           | (Hash senhas e valida senhas)              |
@@ -154,4 +149,3 @@ Fluxo Lúdico com modelo "fazer pedido" explicado com foco técnico e arquitetur
                                                                  |
                                                                  |
    <-----------------------------------------------------------+
-
